@@ -6,8 +6,6 @@
 .monaco-editor .view-rulers-info {
 	position: relative;
 	top: 0;
-	min-height: 20px;
-	text-align: center;
 	user-select: none;
 	pointer-events: none;
 }

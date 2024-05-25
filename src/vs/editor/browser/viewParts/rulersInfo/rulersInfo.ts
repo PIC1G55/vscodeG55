@@ -10,6 +10,7 @@ import { ViewContext } from 'vs/editor/common/viewModel/viewContext';
 import * as viewEvents from 'vs/editor/common/viewEvents';
 import { EditorOption, IRulerOption } from 'vs/editor/common/config/editorOptions';
 import { renderFormattedText } from 'vs/base/browser/formattedTextRenderer';
+import { applyFontInfo } from 'vs/editor/browser/config/domFontInfo';
 
 export class RulersInfo extends ViewPart {
 
@@ -18,20 +19,26 @@ export class RulersInfo extends ViewPart {
 	private readonly _renderedRulersInfo: FastDomNode<HTMLElement>[];
 	private _typicalHalfwidthCharacterWidth: number;
 	private _contentLeft: number;
+	private _lineHeight: number;
 
 	constructor(context: ViewContext) {
 		super(context);
+		const options = this._context.configuration.options;
+		const layoutInfo = options.get(EditorOption.layoutInfo);
+		const fontInfo = options.get(EditorOption.fontInfo);
+
 		this.domNode = createFastDomNode<HTMLElement>(document.createElement('div'));
 		this.domNode.setAttribute('role', 'presentation');
 		this.domNode.setAttribute('aria-hidden', 'true');
 		this.domNode.setClassName('view-rulers-info');
-		const options = this._context.configuration.options;
+
 		this._rulers = options.get(EditorOption.rulers);
-		this._typicalHalfwidthCharacterWidth = options.get(EditorOption.fontInfo).typicalHalfwidthCharacterWidth;
+		this._lineHeight = options.get(EditorOption.lineHeight);
+		this._typicalHalfwidthCharacterWidth = fontInfo.typicalHalfwidthCharacterWidth;
+		this._contentLeft = layoutInfo.contentLeft;
 		this._renderedRulersInfo = [];
 
-		const layoutInfo = options.get(EditorOption.layoutInfo);
-		this._contentLeft = layoutInfo.contentLeft;
+		applyFontInfo(this.domNode, fontInfo);
 	}
 
 	public override dispose(): void {
@@ -42,13 +49,23 @@ export class RulersInfo extends ViewPart {
 
 	public override onConfigurationChanged(e: viewEvents.ViewConfigurationChangedEvent): boolean {
 		const options = this._context.configuration.options;
+		const layoutInfo = options.get(EditorOption.layoutInfo);
+		const fontInfo = options.get(EditorOption.fontInfo);
+
 		this._rulers = options.get(EditorOption.rulers);
-		this._typicalHalfwidthCharacterWidth = options.get(EditorOption.fontInfo).typicalHalfwidthCharacterWidth;
+		this._lineHeight = options.get(EditorOption.lineHeight);
+		this._typicalHalfwidthCharacterWidth = fontInfo.typicalHalfwidthCharacterWidth;
+		this._contentLeft = layoutInfo.contentLeft;
+
+		applyFontInfo(this.domNode, fontInfo);
 		return true;
 	}
+
 	public override onScrollChanged(e: viewEvents.ViewScrollChangedEvent): boolean {
 		return e.scrollHeightChanged;
 	}
+
+	// --- end event handlers
 
 	public prepareRender(ctx: RenderingContext): void {
 	}
@@ -87,6 +104,7 @@ export class RulersInfo extends ViewPart {
 
 	public render(ctx: RestrictedRenderingContext): void {
 		this._ensureColumnInfoCount();
+		this.domNode.setHeight(`${this._lineHeight}px`);
 		for (let i = 0, len = this._rulers.length; i < len; i++) {
 			const node = this._renderedRulersInfo[i];
 			const ruler = this._rulers[i];
