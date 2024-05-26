@@ -15,6 +15,7 @@ import { applyFontInfo } from 'vs/editor/browser/config/domFontInfo';
 export class RulersInfo extends ViewPart {
 
 	public domNode: FastDomNode<HTMLElement>;
+	private _showRulersInfo: boolean;
 	private _rulers: IRulerOption[];
 	private readonly _renderedRulersInfo: FastDomNode<HTMLElement>[];
 	private _typicalHalfwidthCharacterWidth: number;
@@ -32,6 +33,7 @@ export class RulersInfo extends ViewPart {
 		this.domNode.setAttribute('aria-hidden', 'true');
 		this.domNode.setClassName('view-rulers-info');
 
+		this._showRulersInfo = options.get(EditorOption.rulersInfo);
 		this._rulers = options.get(EditorOption.rulers);
 		this._lineHeight = options.get(EditorOption.lineHeight);
 		this._typicalHalfwidthCharacterWidth = fontInfo.typicalHalfwidthCharacterWidth;
@@ -52,6 +54,7 @@ export class RulersInfo extends ViewPart {
 		const layoutInfo = options.get(EditorOption.layoutInfo);
 		const fontInfo = options.get(EditorOption.fontInfo);
 
+		this._showRulersInfo = options.get(EditorOption.rulersInfo);
 		this._rulers = options.get(EditorOption.rulers);
 		this._lineHeight = options.get(EditorOption.lineHeight);
 		this._typicalHalfwidthCharacterWidth = fontInfo.typicalHalfwidthCharacterWidth;
@@ -104,7 +107,7 @@ export class RulersInfo extends ViewPart {
 
 	public render(ctx: RestrictedRenderingContext): void {
 		this._ensureColumnInfoCount();
-		this.domNode.setHeight(`${this._lineHeight}px`);
+		this.domNode.setHeight(this._showRulersInfo ? `${this._lineHeight}px` : 0);
 		for (let i = 0, len = this._rulers.length; i < len; i++) {
 			const node = this._renderedRulersInfo[i];
 			const ruler = this._rulers[i];
