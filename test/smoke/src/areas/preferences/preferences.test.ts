@@ -34,7 +34,7 @@ export function setup(logger: Logger) {
 			await app.workbench.settingsEditor.clearUserSettings();
 		});
 
-		it('turns on rulers info and verifies the live change', async function () {
+		it('turns on rulers and rulers info & verifies the live change', async function () {
 			const app = this.app as Application;
 
 			await app.workbench.settingsEditor.openUserSettingsFile();
@@ -76,6 +76,32 @@ export function setup(logger: Logger) {
 			});
 
 			await app.workbench.settingsEditor.clearUserSettings();
+		});
+
+		it('verify live rulers info changes', async function () {
+			const app = this.app as Application;
+			await app.workbench.settingsEditor.openUserSettingsFile();
+
+			// Setup two rulers and enable rulersInfo
+			await app.workbench.settingsEditor.addUserSetting('editor.rulers', '[60, 70]');
+			await app.code.waitForElements('.view-ruler', false, elements => elements.length === 2);
+
+			await app.workbench.settingsEditor.addUserSetting('editor.rulersInfo', 'true');
+			await app.code.waitForElements('.ruler-column', false, (elements) => {
+				return elements.length === 2 &&
+					elements[0].textContent === '60' &&
+					elements[1].textContent === '70';
+			});
+
+			// Setup only one ruler
+			await app.workbench.settingsEditor.clearUserSettings();
+			await app.workbench.settingsEditor.addUserSetting('editor.rulers', '[60]');
+
+			// Check that the ruler-column elements update
+			await app.code.waitForElements('.ruler-column', false, (elements) => {
+				return elements.length === 1 &&
+					elements[0].textContent === '60';
+			});
 		});
 
 		it('changes "workbench.action.toggleSidebarPosition" command key binding and verifies it', async function () {
